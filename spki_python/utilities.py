@@ -1,4 +1,6 @@
 # coding: utf-8
+"""Utility functions for the SPKI project."""
+
 
 import json
 import logging
@@ -46,7 +48,8 @@ def read_websites_from_file(filename):
                     # Use urlparse to parse the URL
                     url = urlparse(line)
                     domain = url.hostname
-                    port = int(url.port) if url.port else int(443)  # Assume port 443 if not specified
+                    # Assume port 443 if not specified
+                    port = int(url.port) if url.port else int(443)
 
                     website = {
                         "Domain": domain,
@@ -54,7 +57,7 @@ def read_websites_from_file(filename):
                     }
 
                     results.append(website)
-    
+
     except (FileNotFoundError, PermissionError) as ex:
         print(f"Error: {ex}")
         return None
@@ -120,7 +123,7 @@ def save_text_file(filename:str, data):
         if isinstance(data, (dict,list)):
             json.dump(data, fp)
             # this is a guess between 'json.dump' vs 'json.dumps'
-            bytes_written = len(json.dumps(data)) 
+            bytes_written = len(json.dumps(data))
         elif isinstance(data, str):
             bytes_written = fp.write(data)
     logger.debug("Wrote %d bytes to file '%s'.", bytes_written, filename)

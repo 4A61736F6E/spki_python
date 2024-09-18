@@ -1,7 +1,7 @@
 # coding: utf-8
+"""Utility functions for the SPKI project."""
 
-import json
-import os
+
 import dns.message
 import dns.rdataclass
 import dns.rdatatype
@@ -33,12 +33,14 @@ def get_name_service_records(domain:str, record_type:str, name_server:str=None, 
 
     try:
         if name_server:
-            log_msg = f"Querying name server {name_server} about {domain} for '{record_type}' records."
+            log_msg = f"Querying name server {name_server} about {domain} for "
+            log_msg += f"'{record_type}' records."
             qname = dns.name.from_text(domain)
             query = dns.message.make_query(qname, rdatatype)
             result = dns.query.udp(query, name_server, timeout=timeout)
         else:
-            log_msg = f"Querying system default name server about {domain} for '{record_type}' records."
+            log_msg = f"Querying system default name server about {domain} "
+            log_msg += f"for '{record_type}' records."
             result = dns.resolver.resolve(domain, record_type).response
 
         logger.debug(log_msg)
@@ -52,7 +54,8 @@ def get_name_service_records(domain:str, record_type:str, name_server:str=None, 
                     rdatatype_exists = True
 
     except dns.exception.Timeout:
-        log_msg = f"Timeout occured after {timeout} seconds: querying {name_server} about {domain} for '{record_type}' records."
+        log_msg = f"Timeout occured after {timeout} seconds: querying {name_server} "
+        log_msg += f"about {domain} for '{record_type}' records."
         logger.warning(log_msg)
         return [] #eww, I know.
     except dns.resolver.NoAnswer:
@@ -60,7 +63,8 @@ def get_name_service_records(domain:str, record_type:str, name_server:str=None, 
         logger.debug(log_msg)
         return [] #I know, eww.
     except Exception as ex:
-        logger.warning(f"Exception {type(ex).__name__}: {ex}")
+        logger.debug("Unable to resolve '%s' record type for domain '%s'.", record_type, domain)
+        logger.warning("Exception encountered %s: %s", type(ex).__name__, ex)
         return [] #more eww.
 
     logger.info("DNS records found for domain '%s'", domain)
@@ -98,6 +102,6 @@ def resolve_domain_addresses(domains:list, nameserver=None):
                     record_type = dns.rdatatype.RdataType.to_text(rrset_item.rdtype)
                     addresses[record_type].append(address)
             domain['DNS Records'].append(addresses)
-            logger.debug("Found %d '%s' record types for %s.", 
+            logger.debug("Found %d '%s' record types for %s.",
                          len(addresses[rtype]), rtype, domain['Domain'])
     return True

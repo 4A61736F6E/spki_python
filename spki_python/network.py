@@ -57,7 +57,7 @@ def get_domain_certificates_og(domain:str, addresses:list, port:int):
             if server_cipher_suites:
                 session_details_default_json = json.dumps(session_details_default)
                 all_session_results.add(session_details_default_json)
-                
+
                 alt_cipher_suites = get_inverse_cipher_suites(
                     session_details_default['Certificate']['Key Type'],
                     server_cipher_suites
@@ -155,6 +155,8 @@ def get_certificate_og(domain:str, address:str, port:int, cipher_suite=None, sni
             sock.settimeout(5)
             sock.connect((address, port))
         except OSError as ex:
+            logger.warning("Encountered an OSError. [%s] %s, %s %s:%d",
+                           ex.errno, ex, domain, address, port )
             raise
 
         if sni:
@@ -250,7 +252,7 @@ def get_domain_certificates(domain: str, addresses: list, port: int):
         if server_cipher_suites:
             session_details_default_json = json.dumps(session_details_default)
             all_session_results.add(session_details_default_json)
-            
+
             alt_cipher_suites = get_inverse_cipher_suites(
                 session_details_default['Certificate']['Key Type'], server_cipher_suites
             )
@@ -260,7 +262,7 @@ def get_domain_certificates(domain: str, addresses: list, port: int):
             server_cipher_suites, session_details_alt = get_certificate(
                 domain, address, port, sni=use_sni, cipher_suite=alt_cipher_suites[0]
             )
-            
+
             if server_cipher_suites:
                 session_details_alt_json = json.dumps(session_details_alt)
                 all_session_results.add(session_details_alt_json)
@@ -281,7 +283,9 @@ def get_domain_certificates(domain: str, addresses: list, port: int):
 
 
 def get_certificate(domain: str, address: str, port: int, cipher_suite=None, sni=False):
-    """Obtains a single certificate from a target using automatic protocol negotiation (TLS 1.2 and TLS 1.3).
+    """Obtains a single certificate from a target using automatic protocol negotiation.
+    
+    Supports TLS 1.2 and TLS 1.3
     
     Args:
         domain (str): The domain or website.
@@ -296,9 +300,9 @@ def get_certificate(domain: str, address: str, port: int, cipher_suite=None, sni
             dict: Minimal session details. Empt dict upon failure.    
 
     """
-    
+
     # TODO: break down `get_certificate`into a more modular design.
-    
+
     session_details = {
         "Domain": domain,
         "Address": address,
@@ -321,13 +325,18 @@ def get_certificate(domain: str, address: str, port: int, cipher_suite=None, sni
     try:
         logger.debug("Acquiring Certificate: %s:%d [%s] Cipher Suite: %s, SNI: %s",
                      domain, port, address, cipher_suite, sni)
-        
-        # Use the default context with automatic protocol negotiation (including TLS 1.3 and TLS 1.2)
+
+        # Use the default context with automatic protocol negotiation
+        # (including TLS 1.3 and TLS 1.2)
         context = ssl.SSLContext(ssl.PROTOCOL_TLS)
 
-        # Disable hostname verification and certificate validation (for testing purposes only!)
+        # Disable hostname verification and certificate validation
+        # Not a practice to follow for produciton handling of sensitive data.
+        # Necessary for collecting inventory of certificates globally.
         context.check_hostname = False
+        logger.warning ("Certificate hostname checking purposefully disabled.")
         context.verify_mode = ssl.CERT_NONE
+        logger.warning ("Certificate validation purposefully disabled.")
 
         if cipher_suite:
             context.set_ciphers(cipher_suite)
@@ -360,7 +369,8 @@ def get_certificate(domain: str, address: str, port: int, cipher_suite=None, sni
         session_details['Error Message'] = str(ex)
 
     except ssl.SSLError as ex:
-        logger.warning("SSL error: %s[%d]. %s:%d [%s]", ex.strerror, ex.errno, domain, port, address)
+        logger.warning("SSL error: %s[%d]. %s:%d [%s]",
+                       ex.strerror, ex.errno, domain, port, address)
         session_details['Status'] = "Failure"
         session_details['Error Message'] = ex.strerror
 
@@ -377,7 +387,8 @@ def get_certificate(domain: str, address: str, port: int, cipher_suite=None, sni
         session_details['Certificate']['Key Type'] = key_type
         session_details['Certificate']['Key Length'] = key_length
         logger.debug("Found a %d-bit %s certificate at %s:%d [%s]. Cipher Suite: %s, SNI: %s.",
-                     key_length, key_type, domain, port, address, session_details['Cipher Suite'], sni)
+                     key_length, key_type, domain, port,
+                     address, session_details['Cipher Suite'], sni)
 
     return server_cipher_suites, session_details
 
@@ -473,7 +484,8 @@ def get_inverse_cipher_suites(auth_type:str, cipher_suites:list) -> list:
         return inverse_suite_names
     inverse_suite_names = get_cipher_suites_by_suite_auth(auth_name, cipher_suites)
 
-    logger.debug("Found %d inverse cipher suites: %s", len(inverse_suite_names), inverse_suite_names)
+    logger.debug("Found %d inverse cipher suites: %s",
+                 len(inverse_suite_names), inverse_suite_names)
     return inverse_suite_names
 
 

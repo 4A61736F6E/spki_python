@@ -30,7 +30,10 @@ def collect_certificates(websites:dict):
     """_summary_
 
     Args:
-        input_file (str): _description_
+        websites (dict): _description_
+
+    Returns:
+        _type_: _description_
     """
     session_details = []
 
