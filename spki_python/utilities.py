@@ -102,11 +102,15 @@ def save_certificate(filename: str, certificate: str):
 
 
 def save_text_file(filename:str, data):
-    """_summary_
-
+    """ Save data to a file on disk.
+    
     Args:
-        filename (str): _description_
-        data (_type_): _description_
+        filename (str): Path and name of file to write to disk.
+        data (str): Data to save to disk.   
+    
+    Returns:
+        int: Number of bytes written to disk.
+        
     """
     bytes_written = 0
     filename = Path(filename).expanduser()

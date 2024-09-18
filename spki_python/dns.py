@@ -71,15 +71,16 @@ def get_name_service_records(domain:str, record_type:str, name_server:str=None, 
 
 
 def resolve_domain_addresses(domains:list, nameserver=None):
-    """_summary_
+    """Resolves the IP addresses for a list of domains.
 
     Args:
-        websites (list): _description_
+        domains (list): List of dictionaries containing domain names.
+        nameserver (str, optional): IP address of the name server to use for DNS resolution.
+                                    Defaults to None.
 
     Returns:
-        _type_: _description_
+        bool: True upon success. False otherwise.
     """
-    
     logger.info("Correlating IP addresses for %d websites.", len(domains))
 
     for domain in domains:

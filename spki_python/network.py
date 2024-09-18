@@ -7,8 +7,6 @@ import json
 import socket
 import ssl
 
-
-
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.serialization import Encoding
@@ -20,11 +18,13 @@ from cryptography.hazmat.primitives.asymmetric import rsa, ec, dsa
 from spki_python.utilities import logger
 
 
-
+# Constants
+# IP Stack test sites
 IP_STACK_TEST_SITES = {
     "IPv6": "ipv6.google.com",
     "IPv4": "ipv4.google.com"
 }
+# Default cipher suite
 DEFAULT_CIPHER_SUITE = 'DHE-RSA-AES128-SHA256'
 
 
@@ -39,6 +39,7 @@ def get_domain_certificates_og(domain:str, addresses:list, port:int):
 
     Returns:
         dict: Certificates for each IP|Port|SNI combination.
+
     """
     all_session_results = set()
 
@@ -95,6 +96,7 @@ def get_certificate_og(domain:str, address:str, port:int, cipher_suite=None, sni
         tuple(list, dict): 
             list: Server-side cipher suites. Empty list upon failure.
             dict: Minimal session details. Empt dict upon failure.
+
     """
 
     log_msg =  f"Acquiring Certificate: {domain}:{port} [{address}] "
@@ -224,7 +226,17 @@ def get_certificate_og(domain:str, address:str, port:int, cipher_suite=None, sni
 
 
 def get_domain_certificates(domain: str, addresses: list, port: int):
-    """Retrieves certificates for a given domain."""
+    """Retrieves certificates for a given domain.
+    
+    Args:
+        domain (str): Domain or website
+        addresses (list): IPv4 or IPv6 addresses
+        port (int): TCP port.
+
+    Returns:
+        dict: Certificates for each IP|Port|SNI combination.   
+
+    """
     all_session_results = set()
 
     # Function to process each (address, sni) combination
@@ -269,7 +281,23 @@ def get_domain_certificates(domain: str, addresses: list, port: int):
 
 
 def get_certificate(domain: str, address: str, port: int, cipher_suite=None, sni=False):
-    """Obtains a single certificate from a target using automatic protocol negotiation (TLS 1.2 and TLS 1.3)."""
+    """Obtains a single certificate from a target using automatic protocol negotiation (TLS 1.2 and TLS 1.3).
+    
+    Args:
+        domain (str): The domain or website.
+        address (str): The IPv4 or IPv6 address.
+        port (int): The port number.
+        cipher_suite (str, optional): Cipher suite to use. Defaults to None.
+        sni (bool, optional): Server Name Indication boolean. Defaults to False.
+
+    Returns:
+        tuple(list, dict): 
+            list: Server-side cipher suites. Empty list upon failure.
+            dict: Minimal session details. Empt dict upon failure.    
+
+    """
+    
+    # TODO: break down `get_certificate`into a more modular design.
     
     session_details = {
         "Domain": domain,
@@ -356,13 +384,14 @@ def get_certificate(domain: str, address: str, port: int, cipher_suite=None, sni
 
 
 def get_socket_family(address:str):
-    """_summary_
+    """Determines the socket family based on the IP address.
 
     Args:
-        address (str): IPv4 or IPv6 address of site.
+        address (str): IP address.
 
     Returns:
-        socket.AddressFamily: either AF_INET or AF_INET6. None if failure.
+        int: Socket family (AF_INET or AF_INET6). None if address is invalid.
+
     """
     addr = ip_address(address)
     family = None
@@ -378,6 +407,7 @@ def is_ipv6_available():
 
     Returns:
         bool: True if available, False otherwise.
+
     """
     try:
         # Attempt to create an IPv6 socket
@@ -395,6 +425,7 @@ def is_ipv4_available():
 
     Returns:
         bool: True if available, False otherwise.
+
     """
     try:
         # Attempt to create an IPv4 socket
@@ -407,18 +438,21 @@ def is_ipv4_available():
         return False
 
 
+
+
 def get_inverse_cipher_suites(auth_type:str, cipher_suites:list) -> list:
-    """Provides a list of alternate cipher suites.
+    """Provides a list of cipher suites based on the inverse of the provided auth type.
 
     If RSA based auth provided, ECDSA cipher suites offered.
     If ECDSA based auth provided, RSA cipher suites offered.
 
     Args:
-        suite_name (str): _description_
-        cipher_suites (list): _description_
+        auth_type (str): Authentication type to find the inverse of.
+        cipher_suites (list): List of negotiated cipher suites (dict) from connection.
 
     Returns:
-        list: _description_
+        list: List of cipher suite names (str) matching the inverse of auth_type.
+
     """
     logger.debug("Getting inverse cipher suites for '%s'.", auth_type)
     #print(json.dumps(cipher_suites, indent=2))
@@ -452,6 +486,7 @@ def get_cipher_suite_auth_value(suite_name:str, cipher_suites:list) -> str:
 
     Returns:
         str: Value of the cipher suite 'auth' field.
+
     """
     suite_auth = None
     print(f"Suite Name: {suite_name}")
@@ -471,6 +506,7 @@ def get_cipher_suites_by_suite_auth(suite_auth:str, cipher_suites:list) -> list:
 
     Returns:
         list: List of cipher suite names (str) matching suite_auth.
+        
     """
     auth_value = None
     cipher_suite_names = []
@@ -495,7 +531,15 @@ def get_cipher_suites_by_suite_auth(suite_auth:str, cipher_suites:list) -> list:
 
 
 def parse_certificate(certificate:dict):
-    """Populate the certificate dict with details details from within the X.509.
+    """Extends the certificate dictionary with select details from within the X.509.
+
+    Example fields include:
+    - Subject
+    - Issuer
+    - Validity Period
+    - Serial Number
+    - Certificate Thumbprint (or Fingerprint)
+    - SubjectPublicKeyInfo Thumbprint (or Fingerprint)
 
     Args:
         certificate (dict): Certificate dictionary.
@@ -551,7 +595,9 @@ def get_key_info(public_key):
 
     Returns:
         tuple: Key type (str), Key length (int)
+
     """
+
     key_type = "Unknown"
     key_length = None
     if isinstance(public_key, rsa.RSAPublicKey):
