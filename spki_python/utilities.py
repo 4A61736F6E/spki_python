@@ -128,3 +128,36 @@ def save_text_file(filename:str, data):
             bytes_written = fp.write(data)
     logger.debug("Wrote %d bytes to file '%s'.", bytes_written, filename)
     return bytes_written
+
+
+def read_file_as_bytes(file_path: str) -> bytes:
+    """Reads a file as binary data.
+
+    Args:
+        file_path (str): The path to the file.
+
+    Returns:
+        bytes: The binary data read from the file.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
+        IOError: If there is an error reading the file.
+    """
+    logger.info("Reading file as bytes: '%s'", file_path)
+    if not os.path.isfile(file_path):
+        logger.error("File '%s' does not exist or is not a file.", file_path)
+        raise FileNotFoundError(f"File '{file_path}' does not exist or is not a file.")
+
+    try:
+        with open(file_path, 'rb') as file:
+            file_data = file.read()
+            return file_data
+    except FileNotFoundError:
+        logger.error("File '%s' not found.", file_path)
+        raise
+    except IOError as io_ex:
+        logger.error("I/O error reading file '%s': %s", file_path, io_ex)
+        raise
+    except Exception as ex:
+        logger.error("Unexpected error reading file '%s': %s", file_path, ex)
+        raise
