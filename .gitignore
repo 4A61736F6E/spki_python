@@ -170,3 +170,4 @@ cython_debug/
 .python-version
 
 tests/data/
+tests/grrcon/

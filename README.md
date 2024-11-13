@@ -13,7 +13,7 @@ This project relies on stock cryptographic libraries available to Python and the
 # Methods of Execution
 
 
-
+## spki_python.console.spki_python
 
 
 
@@ -25,13 +25,15 @@ The crawl module accesses a given host and completes the TCP and TLS handshake t
 
 ```shell
 $ python -m spki_python.console.crawl --help
-usage: crawl.py [-h] [-v] [-n NAMESERVER] -iL INPUT_FILE -d DUMP_FOLDER
+usage: crawl.py [-h] [-v] [-n NAMESERVER] -iL INPUT_FILE -d DUMP_FOLDER [--digest-algorithm DIGEST_ALGORITHM]
 
 options:
   -h, --help            show this help message and exit
   -v, --verbose         Verbose output (-v is info, -vv is debug)
   -n NAMESERVER, --nameserver NAMESERVER
                         IP address of the name server to use for DNS resolution.
+  --digest-algorithm DIGEST_ALGORITHM
+                        Digest algorithm(s) for the thumbprint calculation.
 
 required arguments:
   -iL INPUT_FILE        Input file containing list of sites to assess.
@@ -47,6 +49,7 @@ required arguments:
 
 The site list consists of a domain (`www.example.com`) and optional domain:port (`example.com:8443`), each on separate lines.  If no port is specified, port `443/tcp` is assumed.  The `crawl` module uses the `--dump` argument to save a variety of files to disk.  Below is a summary of the files and folders created followed by specific examples or descriptions of the fields.
 
+
 | File or Folder | Description | Example |
 |----------------|-------------|---------|
 | `certificates.json`     | JSON file containing list of discovered certificates. | `certificates.json` | 
@@ -59,6 +62,34 @@ The script takes the list of domains and ports (443 assumed if unspecified) and 
 
 ```json
 [
+    {
+        "Domain": "badssl.com",
+        "Port": 443,
+        "DNS Records": [
+            {
+                "A": [
+                    "104.154.89.105"
+                ]
+            },
+            {
+                "AAAA": []
+            }
+        ]
+    },
+    {
+        "Domain": "www.badssl.com",
+        "Port": 443,
+        "DNS Records": [
+            {
+                "A": [
+                    "104.154.89.105"
+                ]
+            },
+            {
+                "AAAA": []
+            }
+        ]
+    },
     {
         "Domain": "tls-v1-2.badssl.com",
         "Port": 1012,
@@ -87,6 +118,134 @@ The `certificates.json` contains a list of dictionaries representing the certifi
 ```json
 [
     {
+        "Domain": "badssl.com",
+        "Address": "104.154.89.105",
+        "Port": 443,
+        "SNI": true,
+        "Protocol": "TLSv1.2",
+        "Cipher Suite": "ECDHE-RSA-AES128-GCM-SHA256",
+        "Certificate": {
+            "PEM": "-----BEGIN CERTIFICATE-----\n[REDACTED_FOR_BREVITY_SAKE]\n-----END CERTIFICATE-----\n",
+            "Certificate Thumbprint": {
+                "sha256": "faa1631b647c2d3a3367f7fa45b89d0da256f0f29f9f8dd33039d55ead29d627",
+                "sha1": "0e9ca203f0af6caeb121174c2c89e25a409a3c9f",
+                "md5": "ef3a1bc5a6dfd43af27bee273cc49278"
+            },
+            "Key Type": "RSA",
+            "Key Size": 2048,
+            "Subject": "CN=*.badssl.com",
+            "Issuer": "CN=R11,O=Let's Encrypt,C=US",
+            "Serial Number": "3569bee34cde3271a5280d428fc00ff439b",
+            "Validity Period": {
+                "Not Before": "2024-08-09T15:05:44+00:00",
+                "Not After": "2024-11-07T15:05:43+00:00"
+            },
+            "SPKI Thumbprint": {
+                "sha256": "4abb5abba0ef7afc00a9daabac3405548557fa5dc7cc4d76880030dc4475fa38",
+                "sha1": "e066ac9bbee0d7892eb7d5b3c2ca0055d734f080",
+                "md5": "b9822d2282d45fc4be98916ec5e99555"
+            }
+        },
+        "Status": "Success",
+        "Error Message": null
+    },
+    {
+        "Domain": "badssl.com",
+        "Address": "104.154.89.105",
+        "Port": 443,
+        "SNI": false,
+        "Protocol": "TLSv1.2",
+        "Cipher Suite": "ECDHE-RSA-AES128-GCM-SHA256",
+        "Certificate": {
+            "PEM": "-----BEGIN CERTIFICATE-----\n[REDACTED_FOR_BREVITY_SAKE]\n-----END CERTIFICATE-----\n",
+            "Certificate Thumbprint": {
+                "sha256": "d073b38943b36bd970ec8f61b3a1aea66e58eff160daee143bcb9d9967867813",
+                "sha1": "3e9cce49eec17bf15bf891a3ae9f3712e0ba42e9",
+                "md5": "8045ad81dc742d26c1f82f59a0dcc599"
+            },
+            "Key Type": "RSA",
+            "Key Size": 2048,
+            "Subject": "CN=badssl-fallback-unknown-subdomain-or-no-sni,O=BadSSL Fallback. Unknown subdomain or no SNI.,L=San Francisco,ST=California,C=US",
+            "Issuer": "CN=BadSSL Intermediate Certificate Authority,O=BadSSL,L=San Francisco,ST=California,C=US",
+            "Serial Number": "cdbc5a4aec9767b1",
+            "Validity Period": {
+                "Not Before": "2016-08-08T21:17:05+00:00",
+                "Not After": "2018-08-08T21:17:05+00:00"
+            },
+            "SPKI Thumbprint": {
+                "sha256": "f522e496c72fccc623f1ffb9da5a79cdefe16340851f22d23d0cd2a58608066f",
+                "sha1": "7965dfc93c6ae6fe8381ec482216ec44ef47282a",
+                "md5": "336ea6e08c7507def3a25ee9cd202e73"
+            }
+        },
+        "Status": "Success",
+        "Error Message": null
+    },
+    {
+        "Domain": "www.badssl.com",
+        "Address": "104.154.89.105",
+        "Port": 443,
+        "SNI": false,
+        "Protocol": "TLSv1.2",
+        "Cipher Suite": "ECDHE-RSA-AES128-GCM-SHA256",
+        "Certificate": {
+            "PEM": "-----BEGIN CERTIFICATE-----\n[REDACTED_FOR_BREVITY_SAKE]\n-----END CERTIFICATE-----\n",
+            "Certificate Thumbprint": {
+                "sha256": "d073b38943b36bd970ec8f61b3a1aea66e58eff160daee143bcb9d9967867813",
+                "sha1": "3e9cce49eec17bf15bf891a3ae9f3712e0ba42e9",
+                "md5": "8045ad81dc742d26c1f82f59a0dcc599"
+            },
+            "Key Type": "RSA",
+            "Key Size": 2048,
+            "Subject": "CN=badssl-fallback-unknown-subdomain-or-no-sni,O=BadSSL Fallback. Unknown subdomain or no SNI.,L=San Francisco,ST=California,C=US",
+            "Issuer": "CN=BadSSL Intermediate Certificate Authority,O=BadSSL,L=San Francisco,ST=California,C=US",
+            "Serial Number": "cdbc5a4aec9767b1",
+            "Validity Period": {
+                "Not Before": "2016-08-08T21:17:05+00:00",
+                "Not After": "2018-08-08T21:17:05+00:00"
+            },
+            "SPKI Thumbprint": {
+                "sha256": "f522e496c72fccc623f1ffb9da5a79cdefe16340851f22d23d0cd2a58608066f",
+                "sha1": "7965dfc93c6ae6fe8381ec482216ec44ef47282a",
+                "md5": "336ea6e08c7507def3a25ee9cd202e73"
+            }
+        },
+        "Status": "Success",
+        "Error Message": null
+    },
+    {
+        "Domain": "www.badssl.com",
+        "Address": "104.154.89.105",
+        "Port": 443,
+        "SNI": true,
+        "Protocol": "TLSv1.2",
+        "Cipher Suite": "ECDHE-RSA-AES128-GCM-SHA256",
+        "Certificate": {
+            "PEM": "-----BEGIN CERTIFICATE-----\n[REDACTED_FOR_BREVITY_SAKE]\n-----END CERTIFICATE-----\n",
+            "Certificate Thumbprint": {
+                "sha256": "faa1631b647c2d3a3367f7fa45b89d0da256f0f29f9f8dd33039d55ead29d627",
+                "sha1": "0e9ca203f0af6caeb121174c2c89e25a409a3c9f",
+                "md5": "ef3a1bc5a6dfd43af27bee273cc49278"
+            },
+            "Key Type": "RSA",
+            "Key Size": 2048,
+            "Subject": "CN=*.badssl.com",
+            "Issuer": "CN=R11,O=Let's Encrypt,C=US",
+            "Serial Number": "3569bee34cde3271a5280d428fc00ff439b",
+            "Validity Period": {
+                "Not Before": "2024-08-09T15:05:44+00:00",
+                "Not After": "2024-11-07T15:05:43+00:00"
+            },
+            "SPKI Thumbprint": {
+                "sha256": "4abb5abba0ef7afc00a9daabac3405548557fa5dc7cc4d76880030dc4475fa38",
+                "sha1": "e066ac9bbee0d7892eb7d5b3c2ca0055d734f080",
+                "md5": "b9822d2282d45fc4be98916ec5e99555"
+            }
+        },
+        "Status": "Success",
+        "Error Message": null
+    },
+    {
         "Domain": "tls-v1-2.badssl.com",
         "Address": "104.154.89.105",
         "Port": 1012,
@@ -94,24 +253,58 @@ The `certificates.json` contains a list of dictionaries representing the certifi
         "Protocol": "TLSv1.2",
         "Cipher Suite": "ECDHE-RSA-AES256-GCM-SHA384",
         "Certificate": {
+            "PEM": "-----BEGIN CERTIFICATE-----\n[REDACTED_FOR_BREVITY_SAKE]\n-----END CERTIFICATE-----\n",
+            "Certificate Thumbprint": {
+                "sha256": "faa1631b647c2d3a3367f7fa45b89d0da256f0f29f9f8dd33039d55ead29d627",
+                "sha1": "0e9ca203f0af6caeb121174c2c89e25a409a3c9f",
+                "md5": "ef3a1bc5a6dfd43af27bee273cc49278"
+            },
             "Key Type": "RSA",
-            "Key Length": 2048,
-            "PEM": "-----BEGIN CERTIFICATE-----\nMIIE9TCCA92gAwIBAgISA1ab7jTN4ycaUoDUKPwA/0ObMA0GCSqGSIb3DQEBCwUA\nMDMxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MQwwCgYDVQQD\nEwNSMTEwHhcNMjQwODA5MTUwNTQ0WhcNMjQxMTA3MTUwNTQzWjAXMRUwEwYDVQQD\nDAwqLmJhZHNzbC5jb20wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCd\nKl6MexmrIYkfRqx7vdbFaZbnR3XrZSSavFBpbAJEai04zUz4Zz40XB/+GhAHxvPi\nsjBBoMTeIM4sxIhXy1gqbL2WckFpvBOBNII+smLJoonUM9LA8i14fv8jqQTjHQye\nZtDdlM/PRh+orS1Wwg8L3507sDGH7Ex6QEmUiHGTXluqCDUjyGcuQyuc5xZUNdJm\nUZKnVWMbja6RLnecueTBlGfzwZMU/hFXtcZMCuE+FFCwyVYacFfNhMm3ckV5hwFc\nhFBfo3lQzJ8hYLTKMABjXyR+WTPxjriZRYFWOYRcQI15Bo8taAYDh6lXcj5A71QF\ntrlIxPAm57yaVs54c8VdAgMBAAGjggIdMIICGTAOBgNVHQ8BAf8EBAMCBaAwHQYD\nVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMAwGA1UdEwEB/wQCMAAwHQYDVR0O\nBBYEFA17gxGErjYsooUaK+vPPbg1gnv8MB8GA1UdIwQYMBaAFMXPRqTq9MPAemyV\nxC2wXpIvJuO5MFcGCCsGAQUFBwEBBEswSTAiBggrBgEFBQcwAYYWaHR0cDovL3Ix\nMS5vLmxlbmNyLm9yZzAjBggrBgEFBQcwAoYXaHR0cDovL3IxMS5pLmxlbmNyLm9y\nZy8wIwYDVR0RBBwwGoIMKi5iYWRzc2wuY29tggpiYWRzc2wuY29tMBMGA1UdIAQM\nMAowCAYGZ4EMAQIBMIIBBQYKKwYBBAHWeQIEAgSB9gSB8wDxAHYAPxdLT9ciR1iU\nHWUchL4NEu2QN38fhWrrwb8ohez4ZG4AAAGRN+IpPwAABAMARzBFAiEAlOextQPh\n6MzDGzxHzPpPdQSZ16fY0aywyCZCc7Jn97QCIFtgQR4Mln3moYmnspFkbYdScPWL\nFnBQC/DiehhdarEYAHcAdv+IPwq2+5VRwmHM9Ye6NLSkzbsp3GhCCp/mZ0xaOnQA\nAAGRN+IpkgAABAMASDBGAiEA/l8+xhtC9tWAQ9OszOIfH34qXgQYgPp88fjoqlxu\nrKMCIQC9HK+l/Vv0/51JDd9J71Hh58OmCJ9cV3LbFrlRAgEC6zANBgkqhkiG9w0B\nAQsFAAOCAQEAZ7Vcj83IL5Vs0wEC7DPR+maB78xyNgnCMIKcySlYxzWU0rNd30jI\nhnrFlDafM1+yB9Qlp3pI0Dgu5zBPL9BbRh9Y4AQhg0ybgqNH2mY/MWYtm+RtKK+e\nXsCmdSTxZfhfUsUirdC3EIhMwTFdFOGib+6IOYLuwS+20CRUoG4EvZkt/J/qtxMD\norLpVkbESmgUIKtdEbK2+JlL9/RgDRM7TETMy8tKkQtzk56kFf+2MOvHmWS0gi8J\nSZSaZjYuvxRMqgXWgZu1HX3TCwwg7AfGE0VgTJUw3Sps/NvNVzITt/0zf5WvBLrT\nN/s9EaN5iVVgKwn1dC0sYoIoY0v/iv4/eg==\n-----END CERTIFICATE-----\n",
+            "Key Size": 2048,
             "Subject": "CN=*.badssl.com",
             "Issuer": "CN=R11,O=Let's Encrypt,C=US",
-            "Serial Number": "03:56:9B:EE:34:CD:E3:27:1A:52:80:D4:28:FC:00:FF:43:9B",
-            "Not Before": "2024-08-09 15:05:44+00:00",
-            "Not After": "2024-11-07 15:05:43+00:00",
-            "SPKI Digests": [
-                {
-                    "SHA256": "4A:BB:5A:BB:A0:EF:7A:FC:00:A9:DA:AB:AC:34:05:54:85:57:FA:5D:C7:CC:4D:76:88:00:30:DC:44:75:FA:38"
-                }
-            ],
-            "Fingerprints": [
-                {
-                    "SHA256": "FA:A1:63:1B:64:7C:2D:3A:33:67:F7:FA:45:B8:9D:0D:A2:56:F0:F2:9F:9F:8D:D3:30:39:D5:5E:AD:29:D6:27"
-                }
-            ]
+            "Serial Number": "3569bee34cde3271a5280d428fc00ff439b",
+            "Validity Period": {
+                "Not Before": "2024-08-09T15:05:44+00:00",
+                "Not After": "2024-11-07T15:05:43+00:00"
+            },
+            "SPKI Thumbprint": {
+                "sha256": "4abb5abba0ef7afc00a9daabac3405548557fa5dc7cc4d76880030dc4475fa38",
+                "sha1": "e066ac9bbee0d7892eb7d5b3c2ca0055d734f080",
+                "md5": "b9822d2282d45fc4be98916ec5e99555"
+            }
+        },
+        "Status": "Success",
+        "Error Message": null
+    },
+    {
+        "Domain": "tls-v1-2.badssl.com",
+        "Address": "104.154.89.105",
+        "Port": 1012,
+        "SNI": true,
+        "Protocol": "TLSv1.2",
+        "Cipher Suite": "ECDHE-RSA-AES256-GCM-SHA384",
+        "Certificate": {
+            "PEM": "-----BEGIN CERTIFICATE-----\n[REDACTED_FOR_BREVITY_SAKE]\n-----END CERTIFICATE-----\n",
+            "Certificate Thumbprint": {
+                "sha256": "faa1631b647c2d3a3367f7fa45b89d0da256f0f29f9f8dd33039d55ead29d627",
+                "sha1": "0e9ca203f0af6caeb121174c2c89e25a409a3c9f",
+                "md5": "ef3a1bc5a6dfd43af27bee273cc49278"
+            },
+            "Key Type": "RSA",
+            "Key Size": 2048,
+            "Subject": "CN=*.badssl.com",
+            "Issuer": "CN=R11,O=Let's Encrypt,C=US",
+            "Serial Number": "3569bee34cde3271a5280d428fc00ff439b",
+            "Validity Period": {
+                "Not Before": "2024-08-09T15:05:44+00:00",
+                "Not After": "2024-11-07T15:05:43+00:00"
+            },
+            "SPKI Thumbprint": {
+                "sha256": "4abb5abba0ef7afc00a9daabac3405548557fa5dc7cc4d76880030dc4475fa38",
+                "sha1": "e066ac9bbee0d7892eb7d5b3c2ca0055d734f080",
+                "md5": "b9822d2282d45fc4be98916ec5e99555"
+            }
         },
         "Status": "Success",
         "Error Message": null
@@ -134,8 +327,11 @@ In the below execution examples, we save our list of domains or targets in the s
 ### crawl Execution Examples
 
 ### badssl.com
+
+Let us crawl the top-level web site of https://badssl.com for any links to related badssl.com subdomains.
+
 ```shell
-FOLDER=tests/data/badssl/`date '+%Y-%m-%d'`
+FOLDER=tests/data/badssl/grrcon
 mkdir -p ${FOLDER}
 DOMAINS=${FOLDER}/domains.txt
 
@@ -158,19 +354,18 @@ curl -s https://badssl.com/ \
     - Remove any domains not related to `badssl.com`.
     - Sort and save only unique records to the domain list file.
 
-Next, we can crawl the domains to obtain the certificates for each.
-
+With our list of domains, and domain port numbers, we can use the Python `crawl` module to complete a TLS handshake and retrieve the site X.509 certificate.
  
 ```shell
-python -m spki_python.console.crawl -vv -iL ${DOMAINS} -d ${FOLDER}
+python -m spki_python.console.crawl -vv -iL ${DOMAINS} -d ${FOLDER} --digest-algorithm sha256,sha1,md5
 ```
 
 
-#### Other Sites
+### badssl.com short example
 
 ```shell
 # Set some folder and file context.
-FOLDER=tests/data/example/`date '+%Y-%m-%d'`
+FOLDER=tests/data/badssl/`date '+%Y-%m-%d'`
 mkdir -p ${FOLDER}
 DOMAINS=${FOLDER}/domains.txt
 
@@ -182,5 +377,5 @@ tls-v1-2.badssl.com:1012
 EOF
 
 # Crawl the domains
-python -m spki_python.console.crawl -vv -iL ${DOMAINS} -d ${FOLDER}
+python -m spki_python.console.crawl -vv -iL ${DOMAINS} -d ${FOLDER} --digest-algorithm sha256,sha1,md5
 ```
