@@ -171,3 +171,4 @@ cython_debug/
 
 tests/data/
 tests/grrcon/
+tests/demo/
