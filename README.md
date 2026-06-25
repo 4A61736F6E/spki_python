@@ -47,7 +47,8 @@ The following is optional shell code which creates symbolic links to files used 
 ```shell
 # Change directories to the root of te spki_project folder.
 
-# sSet a couple environment varibles for ease of use in following script segments.
+# Set a couple environment varibles for ease of use in following script segments.
+# Warning: may have to be explicit about folder paths.  Relative paths may behave oddly if not _in_ the folder.
 SOURCE_FOLDER='../../../spki_openssl/tests/demo'
 WORKING_FOLDER='tests/demo'
 
@@ -55,23 +56,31 @@ WORKING_FOLDER='tests/demo'
 mkdir -p $WORKING_FOLDER
 
 # Create symbolic links.
-ln -s $SOURCE_FOLDER/rsa_private-key.der $WORKING_FOLDER/rsa_private-key.der
-ln -s $SOURCE_FOLDER/rsa_private-key.pem $WORKING_FOLDER/rsa_private-key.pem
+ln -sf $SOURCE_FOLDER/rsa_private-key.der $WORKING_FOLDER/rsa_private-key.der
+ln -sf $SOURCE_FOLDER/rsa_private-key.pem $WORKING_FOLDER/rsa_private-key.pem
 
-ln -s $SOURCE_FOLDER/rsa_signing-request.der $WORKING_FOLDER/rsa_signing-request.der
-ln -s $SOURCE_FOLDER/rsa_signing-request.pem $WORKING_FOLDER/rsa_signing-request.pem
+ln -sf $SOURCE_FOLDER/rsa_signing-request.der $WORKING_FOLDER/rsa_signing-request.der
+ln -sf $SOURCE_FOLDER/rsa_signing-request.pem $WORKING_FOLDER/rsa_signing-request.pem
 
-ln -s $SOURCE_FOLDER/rsa_self-signed-public-key.der $WORKING_FOLDER/rsa_self-signed-public-key.der
-ln -s $SOURCE_FOLDER/rsa_self-signed-public-key.pem $WORKING_FOLDER/rsa_self-signed-public-key.pem
+ln -sf $SOURCE_FOLDER/rsa_self-signed-public-key.der $WORKING_FOLDER/rsa_self-signed-public-key.der
+ln -sf $SOURCE_FOLDER/rsa_self-signed-public-key.pem $WORKING_FOLDER/rsa_self-signed-public-key.pem
 
-ln -s $SOURCE_FOLDER/ec_private-key.der $WORKING_FOLDER/ec_private-key.der
-ln -s $SOURCE_FOLDER/ec_private-key.pem $WORKING_FOLDER/ec_private-key.pem
+ln -sf $SOURCE_FOLDER/ec_private-key.der $WORKING_FOLDER/ec_private-key.der
+ln -sf $SOURCE_FOLDER/ec_private-key.pem $WORKING_FOLDER/ec_private-key.pem
 
-ln -s $SOURCE_FOLDER/ec_signing-request.der $WORKING_FOLDER/ec_signing-request.der
-ln -s $SOURCE_FOLDER/ec_signing-request.pem $WORKING_FOLDER/ec_signing-request.pem
+ln -sf $SOURCE_FOLDER/ec_signing-request.der $WORKING_FOLDER/ec_signing-request.der
+ln -sf $SOURCE_FOLDER/ec_signing-request.pem $WORKING_FOLDER/ec_signing-request.pem
 
-ln -s $SOURCE_FOLDER/ec_self-signed-public-key.der $WORKING_FOLDER/ec_self-signed-public-key.der
-ln -s $SOURCE_FOLDER/ec_self-signed-public-key.pem $WORKING_FOLDER/ec_self-signed-public-key.pem
+ln -sf $SOURCE_FOLDER/ec_self-signed-public-key.der $WORKING_FOLDER/ec_self-signed-public-key.der
+ln -sf $SOURCE_FOLDER/ec_self-signed-public-key.pem $WORKING_FOLDER/ec_self-signed-public-key.pem
+
+# Alternatively, if using spki_openssl project folder, you can select one of the random signing requests or signed certificates
+ln -sf $(ls ${SOURCE_FOLDER}/rsa_signing-request*.der | sort | head -n 1) $WORKING_FOLDER/rsa_signing-request.der
+ln -sf $(ls ${SOURCE_FOLDER}/rsa_self-signed-public-key*.der | sort | head -n 1) $WORKING_FOLDER/rsa_self-signed-public-key.der
+
+ln -sf $(ls ${SOURCE_FOLDER}/ec_signing-request*.der | sort | head -n 1) $WORKING_FOLDER/ec_signing-request.der
+ln -sf $(ls ${SOURCE_FOLDER}/ec_self-signed-public-key*.der | sort | head -n 1) $WORKING_FOLDER/ec_self-signed-public-key.der
+
 
 # Use the `file` command to validate the symbolic links worked. 
 file $WORKING_FOLDER/*.*
